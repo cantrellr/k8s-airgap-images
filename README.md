@@ -68,17 +68,17 @@ CONTAINER_CLI=podman ./download-images.sh
 You will be prompted for the target registry/repository prefix, for example:
 
 ```text
-altregistry.dev.kube:8443/library
+kubeharbor.dev.kube
 ```
 
-Default push mode is now `strip-registry`, which removes the upstream registry name from the target repository path:
+Default push mode is `strip-registry`, which removes the upstream registry name from the target repository path:
 
 ```text
 docker.io/rancher/rancher:v2.14.2
-  -> altregistry.dev.kube:8443/library/rancher/rancher:v2.14.2
+  -> kubeharbor.dev.kube/rancher/rancher:v2.14.2
 
 registry1.dso.mil/ironbank/big-bang/argocd:v3.1.4
-  -> altregistry.dev.kube:8443/library/ironbank/big-bang/argocd:v3.1.4
+  -> kubeharbor.dev.kube/ironbank/big-bang/argocd:v3.1.4
 ```
 
 After the target prefix is entered, the push workflow prompts for credentials to authenticate to the target registry. The target registry login prompt defaults to yes, but you can answer no for an open/no-auth lab registry.
@@ -86,23 +86,23 @@ After the target prefix is entered, the push workflow prompts for credentials to
 If you want to preserve the upstream registry name in the target path, use:
 
 ```bash
-./push-images.sh --mode preserve-registry --target altregistry.dev.kube:8443/library
+./push-images.sh --mode preserve-registry --target kubeharbor.dev.kube
 ```
 
 That maps:
 
 ```text
 docker.io/rancher/rancher:v2.14.2
-  -> altregistry.dev.kube:8443/library/docker.io/rancher/rancher:v2.14.2
+  -> kubeharbor.dev.kube/docker.io/rancher/rancher:v2.14.2
 ```
 
 Useful options:
 
 ```bash
-./push-images.sh --dry-run --target altregistry.dev.kube:8443/library
-./push-images.sh --target altregistry.dev.kube:8443/library --mode preserve-registry
-./push-images.sh --list image-lists/10-docker-hardened-images.list --target altregistry.dev.kube:8443/library
-CONTAINER_CLI=podman ./push-images.sh --target altregistry.dev.kube:8443/library
+./push-images.sh --dry-run --target kubeharbor.dev.kube
+./push-images.sh --target kubeharbor.dev.kube --mode preserve-registry
+./push-images.sh --list image-lists/10-docker-hardened-images.list --target kubeharbor.dev.kube
+CONTAINER_CLI=podman ./push-images.sh --target kubeharbor.dev.kube
 ```
 
 ## Idempotency behavior
@@ -116,6 +116,6 @@ CONTAINER_CLI=podman ./push-images.sh --target altregistry.dev.kube:8443/library
 ## Important operational notes
 
 - If your target registry uses a private CA or self-signed certificate, configure Docker or Podman trust before pushing.
-- For Harbor, make sure the project in the target prefix already exists. For `altregistry.dev.kube:8443/library`, the `library` project must exist.
+- For Harbor, make sure the project in the target prefix already exists. For `kubeharbor.dev.kube`, the appropriate project must exist.
 - `strip-registry` is the default because it matches the requested internal registry layout and produces cleaner image references.
 - `preserve-registry` is available when you need collision avoidance across `docker.io`, `quay.io`, `ghcr.io`, `registry1.dso.mil`, and other upstream registries.

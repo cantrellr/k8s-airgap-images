@@ -10,7 +10,7 @@ FORCE_PULL="false"
 DRY_RUN="false"
 CONTINUE_ON_ERROR="true"
 PUSH_MODE="strip-registry"
-TARGET_PREFIX=""
+TARGET_PREFIX="kubeharbor.dev.kube"
 IMAGE_LIST=""
 RETRIES="${RETRIES:-3}"
 
@@ -34,8 +34,8 @@ Environment:
   RETRIES=3                      Pull/push retry count.
 
 Push modes:
-  strip-registry     altregistry.dev.kube:8443/library/rancher/rancher:v2.14.2
-  preserve-registry  altregistry.dev.kube:8443/library/docker.io/rancher/rancher:v2.14.2
+  strip-registry     kubeharbor.dev.kube/rancher/rancher:v2.14.2
+  preserve-registry  kubeharbor.dev.kube/docker.io/rancher/rancher:v2.14.2
 EOF
 }
 
@@ -104,7 +104,7 @@ without_registry() {
 
 is_bitnami() {
   local image="$1"
-  [[ "$image" == docker.io/bitnami/* || "$image" == bitnami/* ]]
+  [[ "$image" == bitnami/* ]]
 }
 
 is_dhi() {
@@ -139,6 +139,7 @@ organize_lists() {
   fi
   SOURCE_DIR="$SOURCE_DIR" LIST_DIR="$LIST_DIR" python3 "$SCRIPT_DIR/tools/organize_image_lists.py"
 }
+
 read_yes_no() {
   local prompt="$1" default="${2:-n}" reply
   local suffix='[y/N]'
@@ -319,7 +320,7 @@ push_images() {
   [[ -f "$list" ]] || { err "Image list not found: $list"; exit 1; }
 
   if [[ -z "$TARGET_PREFIX" ]]; then
-    read -r -p "Target registry/repository prefix, e.g. altregistry.dev.kube:8443/library: " TARGET_PREFIX
+    read -r -p "Target registry/repository prefix, e.g. kubeharbor.dev.kube: " TARGET_PREFIX
   fi
   TARGET_PREFIX="$(trim "$TARGET_PREFIX")"
   [[ -n "$TARGET_PREFIX" ]] || { err "Target registry/repository prefix is required."; exit 1; }

@@ -1,0 +1,5 @@
+docker-registry.nginx.com/nsm/nginx-mesh-cert-reloader:2.0.0
+docker-registry.nginx.com/nsm/nginx-mesh-controller:2.0.0
+docker-registry.nginx.com/nsm/nginx-mesh-init:2.0.0
+docker-registry.nginx.com/nsm/nginx-mesh-metrics:2.0.0
+docker-registry.nginx.com/nsm/nginx-mesh-sidecar:2.0.0
