@@ -318,19 +318,32 @@ project_from_target_ref() {
 }
 
 harbor_project_exists() {
-  local api_base="$1" project="$2" http_code
-  local -a cmd=(curl -sS -o /dev/null -w '%{http_code}' -u "$HARBOR_API_USER:$HARBOR_API_PASSWORD")
+  local api_base="$1" project="$2" http_code response output
+  local -a cmd=(curl -sS -w '\n%{http_code}' -u "$HARBOR_API_USER:$HARBOR_API_PASSWORD")
   [[ "$HARBOR_API_INSECURE" == "true" ]] && cmd+=(-k)
-  cmd+=("$api_base/api/v2.0/projects/$project")
+  # Use the list-with-name-filter endpoint rather than single-project GET.
+  # GET /api/v2.0/projects?name=<n> requires only List Project (system permission).
+  # GET /api/v2.0/projects/<n> requires direct project-level read, which robot
+  # accounts with only List Project + Create Project system permissions lack.
+  cmd+=("$api_base/api/v2.0/projects?name=${project}&page_size=1")
 
-  if ! http_code="$("${cmd[@]}")"; then
+  if ! output="$("${cmd[@]}")"; then
     return 2
   fi
 
+  http_code="$(printf '%s' "$output" | tail -1)"
+  response="$(printf '%s' "$output" | head -n -1)"
+
   HARBOR_LAST_HTTP_CODE="$http_code"
   case "$http_code" in
-    200) return 0 ;;
-    404) return 1 ;;
+    200)
+      # Empty array means not found; any populated array means it exists.
+      if [[ "$response" == "[]" || -z "$response" ]]; then
+        return 1
+      else
+        return 0
+      fi
+      ;;
     401) return 3 ;;
     403) return 5 ;;
     *) return 4 ;;
