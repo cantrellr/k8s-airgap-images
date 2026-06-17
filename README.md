@@ -86,7 +86,11 @@ registry1.dso.mil/ironbank/big-bang/argocd:v3.1.4
 
 Single-segment upstream repositories (for example `docker.io/busybox` or `dhi.io/keycloak`) are automatically placed under `library/` to produce a project/repository shape accepted by Harbor-style registries.
 
+Before push attempts begin, the script reconciles Harbor projects referenced by the target images: check if each project exists, create missing projects, verify they exist, then continue with push.
+
 After the target prefix is entered, the push workflow prompts for credentials to authenticate to the target registry. The target registry login prompt defaults to yes, but you can answer no for an open/no-auth lab registry.
+
+By default, that same credential entry is reused for Harbor project preflight, so push flow asks once for credentials. Use `--harbor-api-user/--harbor-api-password` (or `HARBOR_API_USER/HARBOR_API_PASSWORD`) only when Harbor project-management credentials must differ from push credentials. Use `--separate-harbor-credentials` to force a separate Harbor API credential prompt.
 
 If you want to preserve the upstream registry name in the target path, use:
 
@@ -107,6 +111,10 @@ Useful options:
 ./push-images.sh --dry-run --target kubeharbor.dev.kube
 ./push-images.sh --target kubeharbor.dev.kube --mode preserve-registry
 ./push-images.sh --list image-lists/10-docker-hardened-images.list --target kubeharbor.dev.kube
+./push-images.sh --target kubeharbor.dev.kube --skip-project-check
+./push-images.sh --target kubeharbor.dev.kube --separate-harbor-credentials
+./push-images.sh --target kubeharbor.dev.kube --harbor-api-url https://kubeharbor.dev.kube --harbor-api-user admin --harbor-api-password '<token>'
+./push-images.sh --target kubeharbor.dev.kube --harbor-insecure
 CONTAINER_CLI=podman ./push-images.sh --target kubeharbor.dev.kube
 ```
 
@@ -121,7 +129,9 @@ CONTAINER_CLI=podman ./push-images.sh --target kubeharbor.dev.kube
 ## Important operational notes
 
 - If your target registry uses a private CA or self-signed certificate, configure Docker or Podman trust before pushing.
-- For Harbor, make sure the project in the target prefix already exists. For `kubeharbor.dev.kube`, the appropriate project must exist.
+- The push workflow now preflights Harbor projects and creates missing ones before pushing.
+- Harbor project preflight uses Harbor API credentials (interactive prompt, or `HARBOR_API_USER`/`HARBOR_API_PASSWORD`, or corresponding CLI options).
+- Robot accounts are commonly push-scoped and may not be able to create projects. Use a project-management account for API preflight when required.
 - For single-segment images that map under `library/`, make sure a `library` project/namespace exists in the target registry.
 - `strip-registry` is the default because it matches the requested internal registry layout and produces cleaner image references.
 - `preserve-registry` is available when you need collision avoidance across `docker.io`, `quay.io`, `ghcr.io`, `registry1.dso.mil`, and other upstream registries.

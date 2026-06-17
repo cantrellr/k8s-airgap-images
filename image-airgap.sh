@@ -13,13 +13,25 @@ PUSH_MODE="strip-registry"
 TARGET_PREFIX="kubeharbor.dev.kube"
 IMAGE_LIST=""
 RETRIES="${RETRIES:-3}"
+ENSURE_PROJECTS="true"
+HARBOR_API_URL="${HARBOR_API_URL:-}"
+HARBOR_API_USER="${HARBOR_API_USER:-}"
+HARBOR_API_PASSWORD="${HARBOR_API_PASSWORD:-}"
+HARBOR_API_INSECURE="${HARBOR_API_INSECURE:-false}"
+HARBOR_PROJECT_VERIFY_RETRIES="${HARBOR_PROJECT_VERIFY_RETRIES:-5}"
+HARBOR_PROJECT_VERIFY_DELAY="${HARBOR_PROJECT_VERIFY_DELAY:-2}"
+HARBOR_LAST_HTTP_CODE=""
+SEPARATE_HARBOR_CREDENTIALS="false"
+LAST_LOGIN_REGISTRY=""
+LAST_LOGIN_USER=""
+LAST_LOGIN_PASSWORD=""
 
 usage() {
   cat <<'EOF'
 Usage:
   ./image-airgap.sh organize
   ./image-airgap.sh pull [--list image-lists/all-active-images.list] [--force] [--dry-run]
-  ./image-airgap.sh push [--list image-lists/all-active-images.list] [--target REGISTRY/PREFIX] [--mode strip-registry|preserve-registry] [--dry-run]
+  ./image-airgap.sh push [--list image-lists/all-active-images.list] [--target REGISTRY/PREFIX] [--mode strip-registry|preserve-registry] [--dry-run] [--skip-project-check] [--harbor-api-url URL] [--harbor-api-user USER] [--harbor-api-password PASS] [--harbor-insecure] [--separate-harbor-credentials]
 
 Wrappers:
   ./organize-image-lists.sh
@@ -32,6 +44,12 @@ Environment:
   LIST_DIR=./image-lists         Generated organized list directory.
   LOG_DIR=./logs                 Pull/push result logs.
   RETRIES=3                      Pull/push retry count.
+  HARBOR_API_URL=https://harbor.example.com Harbor API URL override (default: https://<target-registry-host>)
+  HARBOR_API_USER=<user>         Harbor API user for project check/create/verify
+  HARBOR_API_PASSWORD=<pass>     Harbor API password/token for project check/create/verify
+  HARBOR_API_INSECURE=true       Allow insecure Harbor API TLS (self-signed/private CA)
+  HARBOR_PROJECT_VERIFY_RETRIES=5 Number of verify retries after project create
+  HARBOR_PROJECT_VERIFY_DELAY=2   Seconds between project verify retries
 
 Push modes:
   strip-registry     kubeharbor.dev.kube/rancher/rancher:v2.14.2
@@ -161,6 +179,13 @@ prompt_login() {
       warn "Username or password/token was empty; skipping login for $registry"
       return 0
     fi
+
+    # Cache most recent successful credential entry so push preflight can reuse
+    # the same prompt values unless explicit Harbor API credentials are provided.
+    LAST_LOGIN_REGISTRY="$registry"
+    LAST_LOGIN_USER="$user"
+    LAST_LOGIN_PASSWORD="$pass"
+
     if [[ "$DRY_RUN" == "true" ]]; then
       log "DRY RUN: would run '$CONTAINER_CLI login $registry -u <user> --password-stdin'"
     else
@@ -261,6 +286,222 @@ registry_host_from_prefix() {
   printf '%s\n' "${prefix%%/*}"
 }
 
+harbor_api_base_from_target_host() {
+  local host="$1"
+  if [[ -n "$HARBOR_API_URL" ]]; then
+    printf '%s\n' "${HARBOR_API_URL%/}"
+  else
+    printf 'https://%s\n' "$host"
+  fi
+}
+
+prompt_harbor_api_credentials() {
+  [[ "$DRY_RUN" == "true" ]] && return 0
+  if [[ -z "$HARBOR_API_USER" ]]; then
+    read -r -p "  Harbor API username for project preflight: " HARBOR_API_USER
+  fi
+  if [[ -z "$HARBOR_API_PASSWORD" ]]; then
+    read -r -s -p "  Harbor API password/token: " HARBOR_API_PASSWORD
+    printf '\n'
+  fi
+  if [[ -z "$HARBOR_API_USER" || -z "$HARBOR_API_PASSWORD" ]]; then
+    err "Harbor API credentials are required for project preflight."
+    return 1
+  fi
+}
+
+project_from_target_ref() {
+  local target_ref="$1" rest project
+  rest="${target_ref#*/}"
+  project="${rest%%/*}"
+  printf '%s\n' "$project"
+}
+
+harbor_project_exists() {
+  local api_base="$1" project="$2" http_code
+  local -a cmd=(curl -sS -o /dev/null -w '%{http_code}' -u "$HARBOR_API_USER:$HARBOR_API_PASSWORD")
+  [[ "$HARBOR_API_INSECURE" == "true" ]] && cmd+=(-k)
+  cmd+=("$api_base/api/v2.0/projects/$project")
+
+  if ! http_code="$("${cmd[@]}")"; then
+    return 2
+  fi
+
+  HARBOR_LAST_HTTP_CODE="$http_code"
+  case "$http_code" in
+    200) return 0 ;;
+    404) return 1 ;;
+    401|403) return 3 ;;
+    *) return 4 ;;
+  esac
+}
+
+harbor_create_project() {
+  local api_base="$1" project="$2" payload http_code
+  payload="$(printf '{"project_name":"%s","public":false}' "$project")"
+  local -a cmd=(curl -sS -o /dev/null -w '%{http_code}' -u "$HARBOR_API_USER:$HARBOR_API_PASSWORD" -H 'Content-Type: application/json' -X POST)
+  [[ "$HARBOR_API_INSECURE" == "true" ]] && cmd+=(-k)
+  cmd+=(-d "$payload" "$api_base/api/v2.0/projects")
+
+  if ! http_code="$("${cmd[@]}")"; then
+    return 2
+  fi
+
+  HARBOR_LAST_HTTP_CODE="$http_code"
+  case "$http_code" in
+    201|409) return 0 ;;
+    401|403) return 3 ;;
+    *) return 4 ;;
+  esac
+}
+
+harbor_wait_for_project() {
+  local api_base="$1" project="$2" attempt rc
+  for attempt in $(seq 1 "$HARBOR_PROJECT_VERIFY_RETRIES"); do
+    if harbor_project_exists "$api_base" "$project"; then
+      rc=0
+    else
+      rc=$?
+    fi
+    case "$rc" in
+      0)
+        return 0
+        ;;
+      1)
+        if [[ "$attempt" -lt "$HARBOR_PROJECT_VERIFY_RETRIES" ]]; then
+          sleep "$HARBOR_PROJECT_VERIFY_DELAY"
+        fi
+        ;;
+      3)
+        return 3
+        ;;
+      *)
+        return 4
+        ;;
+    esac
+  done
+  return 1
+}
+
+ensure_push_projects() {
+  local list="$1" target_prefix="$2" mode="$3" target_host="$4"
+  [[ "$ENSURE_PROJECTS" == "true" ]] || return 0
+
+  local api_base stamp project_log tmp_projects image target project
+  api_base="$(harbor_api_base_from_target_host "$target_host")"
+  stamp="$(date '+%Y%m%d-%H%M%S')"
+  project_log="$LOG_DIR/project-reconcile-$stamp.log"
+  mkdir -p "$LOG_DIR"
+  : > "$project_log"
+  tmp_projects="$(mktemp)"
+
+  while IFS= read -r image || [[ -n "$image" ]]; do
+    image="$(trim "$image")"
+    [[ -z "$image" || "$image" == \#* ]] && continue
+    target="$(target_for_image "$image" "$target_prefix" "$mode")"
+    project="$(project_from_target_ref "$target")"
+    [[ -n "$project" ]] && printf '%s\n' "$project" >> "$tmp_projects"
+  done < "$list"
+
+  sort_unique_file "$tmp_projects"
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    while IFS= read -r project || [[ -n "$project" ]]; do
+      [[ -z "$project" ]] && continue
+      log "DRY RUN: would ensure Harbor project exists: $project"
+      printf '[%s] DRY RUN ensure project %s via %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$project" "$api_base" >> "$project_log"
+    done < "$tmp_projects"
+    rm -f "$tmp_projects"
+    log "Project reconcile log: $project_log"
+    return 0
+  fi
+
+  command -v curl >/dev/null 2>&1 || { err "curl is required for project preflight."; rm -f "$tmp_projects"; return 1; }
+  prompt_harbor_api_credentials || { rm -f "$tmp_projects"; return 1; }
+
+  while IFS= read -r project || [[ -n "$project" ]]; do
+    [[ -z "$project" ]] && continue
+    log "Project preflight: checking '$project'"
+    printf '[%s] checking project %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$project" >> "$project_log"
+
+    local exists_rc create_rc verify_rc
+    if harbor_project_exists "$api_base" "$project"; then
+      exists_rc=0
+    else
+      exists_rc=$?
+    fi
+
+    case "$exists_rc" in
+      0)
+        log "Project preflight: exists '$project'"
+        printf '[%s] exists %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$project" >> "$project_log"
+        continue
+        ;;
+      1)
+        ;;
+      3)
+        err "Project preflight: Harbor API denied project check for '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
+        err "Project preflight: use a Harbor API account with project read/create permissions; robot push accounts are often push-only."
+        rm -f "$tmp_projects"
+        return 1
+        ;;
+      *)
+        err "Project preflight: Harbor API returned unexpected status while checking '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
+        rm -f "$tmp_projects"
+        return 1
+        ;;
+    esac
+
+    warn "Project preflight: '$project' is missing; creating"
+    if harbor_create_project "$api_base" "$project"; then
+      create_rc=0
+    else
+      create_rc=$?
+    fi
+    if [[ "$create_rc" -ne 0 ]]; then
+      case "$create_rc" in
+        3)
+          err "Project preflight: Harbor API denied create for '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
+          err "Project preflight: use a Harbor API account with project create permission; keep robot account for image push if required."
+          ;;
+        *)
+          err "Project preflight: failed to create '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
+          ;;
+      esac
+      rm -f "$tmp_projects"
+      return 1
+    fi
+
+    log "Project preflight: verifying '$project'"
+    if harbor_wait_for_project "$api_base" "$project"; then
+      verify_rc=0
+    else
+      verify_rc=$?
+    fi
+    if [[ "$verify_rc" -ne 0 ]]; then
+      case "$verify_rc" in
+        1)
+          err "Project preflight: '$project' still missing after create (HTTP $HARBOR_LAST_HTTP_CODE)."
+          ;;
+        3)
+          err "Project preflight: Harbor API denied verify for '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
+          ;;
+        *)
+          err "Project preflight: verify failed for '$project' with Harbor API status HTTP $HARBOR_LAST_HTTP_CODE."
+          ;;
+      esac
+      rm -f "$tmp_projects"
+      return 1
+    fi
+
+    log "Project preflight: created and verified '$project'"
+    printf '[%s] created and verified %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$project" >> "$project_log"
+  done < "$tmp_projects"
+
+  rm -f "$tmp_projects"
+  log "Project reconcile log: $project_log"
+}
+
 target_for_image() {
   local image="$1" target="$2" mode="$3" normalized path
   target="${target%/}"
@@ -345,6 +586,26 @@ push_images() {
   log "Retag mode: $PUSH_MODE"
   prompt_login "$target_host" "Target registry" "y"
 
+  # Ask once by default: reuse target registry login credentials for Harbor API
+  # project preflight unless explicit Harbor API credentials were provided.
+  if [[ "$SEPARATE_HARBOR_CREDENTIALS" == "true" ]]; then
+    if [[ -z "$HARBOR_API_USER" || -z "$HARBOR_API_PASSWORD" ]]; then
+      log "Project preflight: separate Harbor API credentials requested."
+    fi
+  else
+    if [[ -z "$HARBOR_API_USER" && "$LAST_LOGIN_REGISTRY" == "$target_host" && -n "$LAST_LOGIN_USER" ]]; then
+      HARBOR_API_USER="$LAST_LOGIN_USER"
+    fi
+    if [[ -z "$HARBOR_API_PASSWORD" && "$LAST_LOGIN_REGISTRY" == "$target_host" && -n "$LAST_LOGIN_PASSWORD" ]]; then
+      HARBOR_API_PASSWORD="$LAST_LOGIN_PASSWORD"
+    fi
+    if [[ -n "$HARBOR_API_USER" && -n "$HARBOR_API_PASSWORD" ]]; then
+      log "Project preflight: reusing target registry credentials for Harbor API checks."
+    fi
+  fi
+
+  ensure_push_projects "$list" "$TARGET_PREFIX" "$PUSH_MODE" "$target_host"
+
   mkdir -p "$LOG_DIR" "$LIST_DIR"
   local stamp map_file target_list success_log failed_log missing_log image total current target
   stamp="$(date '+%Y%m%d-%H%M%S')"
@@ -395,6 +656,20 @@ parse_common_args() {
         DRY_RUN="true"; shift ;;
       --fail-fast)
         CONTINUE_ON_ERROR="false"; shift ;;
+      --skip-project-check)
+        ENSURE_PROJECTS="false"; shift ;;
+      --ensure-projects)
+        ENSURE_PROJECTS="true"; shift ;;
+      --harbor-api-url)
+        HARBOR_API_URL="$2"; shift 2 ;;
+      --harbor-api-user)
+        HARBOR_API_USER="$2"; shift 2 ;;
+      --harbor-api-password)
+        HARBOR_API_PASSWORD="$2"; shift 2 ;;
+      --harbor-insecure)
+        HARBOR_API_INSECURE="true"; shift ;;
+      --separate-harbor-credentials)
+        SEPARATE_HARBOR_CREDENTIALS="true"; shift ;;
       -h|--help)
         usage; exit 0 ;;
       *)
