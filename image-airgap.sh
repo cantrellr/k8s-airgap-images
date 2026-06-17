@@ -277,6 +277,13 @@ target_for_image() {
       exit 1
       ;;
   esac
+
+  # Harbor and similar registries expect a project/image path shape.
+  # If the transformed path has only one segment, place it under library/.
+  if [[ "$path" != */* ]]; then
+    path="library/$path"
+  fi
+
   printf '%s/%s\n' "$target" "$path"
 }
 

@@ -77,9 +77,14 @@ Default push mode is `strip-registry`, which removes the upstream registry name 
 docker.io/rancher/rancher:v2.14.2
   -> kubeharbor.dev.kube/rancher/rancher:v2.14.2
 
+docker.io/busybox:1.37.0
+  -> kubeharbor.dev.kube/library/busybox:1.37.0
+
 registry1.dso.mil/ironbank/big-bang/argocd:v3.1.4
   -> kubeharbor.dev.kube/ironbank/big-bang/argocd:v3.1.4
 ```
+
+Single-segment upstream repositories (for example `docker.io/busybox` or `dhi.io/keycloak`) are automatically placed under `library/` to produce a project/repository shape accepted by Harbor-style registries.
 
 After the target prefix is entered, the push workflow prompts for credentials to authenticate to the target registry. The target registry login prompt defaults to yes, but you can answer no for an open/no-auth lab registry.
 
@@ -117,5 +122,6 @@ CONTAINER_CLI=podman ./push-images.sh --target kubeharbor.dev.kube
 
 - If your target registry uses a private CA or self-signed certificate, configure Docker or Podman trust before pushing.
 - For Harbor, make sure the project in the target prefix already exists. For `kubeharbor.dev.kube`, the appropriate project must exist.
+- For single-segment images that map under `library/`, make sure a `library` project/namespace exists in the target registry.
 - `strip-registry` is the default because it matches the requested internal registry layout and produces cleaner image references.
 - `preserve-registry` is available when you need collision avoidance across `docker.io`, `quay.io`, `ghcr.io`, `registry1.dso.mil`, and other upstream registries.

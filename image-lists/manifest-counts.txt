@@ -1,4 +1,4 @@
-Generated: 2026-06-17T15:40:51.050871+00:00
+Generated: 2026-06-17T17:55:24.091217+00:00
 Source directory: /home/k8admin/repos/k8s-airgap-images/source-lists
 Total unique source images: 1574
 Active images, excluding archived Bitnami: 1520
