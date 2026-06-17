@@ -331,7 +331,8 @@ harbor_project_exists() {
   case "$http_code" in
     200) return 0 ;;
     404) return 1 ;;
-    401|403) return 3 ;;
+    401) return 3 ;;
+    403) return 5 ;;
     *) return 4 ;;
   esac
 }
@@ -350,7 +351,8 @@ harbor_create_project() {
   HARBOR_LAST_HTTP_CODE="$http_code"
   case "$http_code" in
     201|409) return 0 ;;
-    401|403) return 3 ;;
+    401) return 3 ;;
+    403) return 6 ;;
     *) return 4 ;;
   esac
 }
@@ -374,6 +376,9 @@ harbor_wait_for_project() {
         ;;
       3)
         return 3
+        ;;
+      5)
+        return 5
         ;;
       *)
         return 4
@@ -433,8 +438,8 @@ ensure_push_projects() {
 
     case "$exists_rc" in
       0)
-        log "Project preflight: exists '$project'"
-        printf '[%s] exists %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$project" >> "$project_log"
+          log "Project preflight: successful read for '$project' (HTTP 200)"
+          printf '[%s] read ok %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$project" >> "$project_log"
         continue
         ;;
       1)
@@ -445,6 +450,8 @@ ensure_push_projects() {
         rm -f "$tmp_projects"
         return 1
         ;;
+        5)
+          ;;
       *)
         err "Project preflight: Harbor API returned unexpected status while checking '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
         rm -f "$tmp_projects"
@@ -463,6 +470,9 @@ ensure_push_projects() {
         3)
           err "Project preflight: Harbor API denied create for '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
           err "Project preflight: use a Harbor API account with project create permission; keep robot account for image push if required."
+          ;;
+        6)
+          err "Project preflight: Harbor API forbids create for '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
           ;;
         *)
           err "Project preflight: failed to create '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
@@ -486,14 +496,18 @@ ensure_push_projects() {
         3)
           err "Project preflight: Harbor API denied verify for '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
           ;;
+        5)
+            err "Project preflight: Harbor API denied project read after create for '$project' (HTTP $HARBOR_LAST_HTTP_CODE)."
+          ;;
         *)
           err "Project preflight: verify failed for '$project' with Harbor API status HTTP $HARBOR_LAST_HTTP_CODE."
           ;;
       esac
-      rm -f "$tmp_projects"
-      return 1
+        rm -f "$tmp_projects"
+        return 1
     fi
 
+      log "Project preflight: successful read for '$project' after create (HTTP 200)"
     log "Project preflight: created and verified '$project'"
     printf '[%s] created and verified %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$project" >> "$project_log"
   done < "$tmp_projects"
@@ -584,7 +598,26 @@ push_images() {
   log "Target prefix: $TARGET_PREFIX"
   log "Target registry host: $target_host"
   log "Retag mode: $PUSH_MODE"
-  prompt_login "$target_host" "Target registry" "y"
+
+  # If Harbor API credentials are explicitly provided, use them for target
+  # registry login without prompting. If login fails, fail fast.
+  if [[ -n "$HARBOR_API_USER" && -n "$HARBOR_API_PASSWORD" ]]; then
+    LAST_LOGIN_REGISTRY="$target_host"
+    LAST_LOGIN_USER="$HARBOR_API_USER"
+    LAST_LOGIN_PASSWORD="$HARBOR_API_PASSWORD"
+    log "Target registry login: using provided Harbor API credentials (non-interactive)."
+    if [[ "$DRY_RUN" == "true" ]]; then
+      log "DRY RUN: would run '$CONTAINER_CLI login $target_host -u <user> --password-stdin'"
+    else
+      if ! printf '%s' "$HARBOR_API_PASSWORD" | "$CONTAINER_CLI" login "$target_host" -u "$HARBOR_API_USER" --password-stdin; then
+        err "Target registry login failed with provided Harbor API credentials."
+        err "No credential prompt was shown because --harbor-api-user/--harbor-api-password were supplied."
+        return 1
+      fi
+    fi
+  else
+    prompt_login "$target_host" "Target registry" "y"
+  fi
 
   # Ask once by default: reuse target registry login credentials for Harbor API
   # project preflight unless explicit Harbor API credentials were provided.
