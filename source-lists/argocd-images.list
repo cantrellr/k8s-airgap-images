@@ -1,0 +1,9 @@
+docker.io/prometheuscommunity/postgres-exporter:v0.19.1
+quay.io/argoproj/argocd:v3.4.2
+public.ecr.aws/docker/library/redis:7.4.2-alpine
+public.ecr.aws/docker/library/redis:8.2.3-alpine
+ghcr.io/dexidp/dex:v2.45.1
+ghcr.io/oliver006/redis_exporter:v1.84.0
+ghcr.io/oliver006/redis_exporter:v1.75.0
+quay.io/argoprojlabs/argocd-extension-installer:v1.0.0
+public.ecr.aws/docker/library/haproxy:3.4-dev14-alpine3.23
