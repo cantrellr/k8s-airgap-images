@@ -1,8 +1,0 @@
-dhi.io/keycloak:26-debian13-dev
-dhi.io/keycloak:26.5.5-fips
-dhi.io/keycloak:26.5.6-fips
-docker-registry.nginx.com/nsm/nginx-mesh-cert-reloader:2.0.0
-docker-registry.nginx.com/nsm/nginx-mesh-controller:2.0.0
-docker-registry.nginx.com/nsm/nginx-mesh-init:2.0.0
-docker-registry.nginx.com/nsm/nginx-mesh-metrics:2.0.0
-docker-registry.nginx.com/nsm/nginx-mesh-sidecar:2.0.0
