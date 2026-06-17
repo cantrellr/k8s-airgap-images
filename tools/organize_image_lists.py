@@ -26,7 +26,7 @@ def normalize(image: str) -> str:
     return image
 
 def is_bitnami(image: str) -> bool:
-    return image.startswith("bitnami/")
+    return image.startswith("docker.io/bitnami/") or image.startswith("bitnami/")
 
 def is_dhi(image: str) -> bool:
     return (

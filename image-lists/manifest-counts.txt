@@ -1,9 +1,9 @@
-Generated: 2026-06-17T14:57:26.351271+00:00
+Generated: 2026-06-17T15:40:51.050871+00:00
 Source directory: /home/k8admin/repos/k8s-airgap-images/source-lists
 Total unique source images: 1574
-Active images, excluding archived Bitnami: 1574
-Public/no-auth list: 1273
+Active images, excluding archived Bitnami: 1520
+Public/no-auth list: 1219
 Docker Hardened Images/DHI list: 29
 registry1.dso.mil/Iron Bank list: 267
 docker-registry.nginx.com list: 5
-Archived Bitnami list: 0
+Archived Bitnami list: 54

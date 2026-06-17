@@ -104,7 +104,7 @@ without_registry() {
 
 is_bitnami() {
   local image="$1"
-  [[ "$image" == bitnami/* ]]
+  [[ "$image" == docker.io/bitnami/* || "$image" == bitnami/* ]]
 }
 
 is_dhi() {
