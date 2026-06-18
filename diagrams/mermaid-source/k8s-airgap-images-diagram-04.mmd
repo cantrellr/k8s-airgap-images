@@ -1,0 +1,18 @@
+flowchart TB
+    Start["download-images.sh"] --> Organize["organize image lists"]
+    Organize --> CLI["image-airgap.sh pull"]
+    CLI --> DockerLogin["docker.io prompt"]
+    DockerLogin --> IronBankLogin["registry1.dso.mil prompt"]
+    IronBankLogin --> OptionalDHI["dhi.io prompt if needed"]
+    OptionalDHI --> OptionalNginx["NGINX prompt if needed"]
+    OptionalNginx --> PullLoop["Pull each active image"]
+    PullLoop --> Exists{"Image already local?"}
+    Exists -- Yes --> SuccessLog["pull-success.list"]
+    Exists -- No --> Retry["Pull with retries"]
+    Retry --> Pulled{"Pull succeeded?"}
+    Pulled -- Yes --> SuccessLog
+    Pulled -- No --> FailedLog["pull-failed timestamp list"]
+
+    style PullLoop fill:#e3f2fd
+    style SuccessLog fill:#e8f5e9
+    style FailedLog fill:#ffebee
