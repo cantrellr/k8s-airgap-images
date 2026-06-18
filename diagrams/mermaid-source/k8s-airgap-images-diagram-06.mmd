@@ -1,0 +1,31 @@
+flowchart TB
+    subgraph cluster_1_Kubeharbor["kubeharbor Repo"]
+        StageScript["install-k8s-airgap-images.sh"]
+        PullWrapper["pull-images-to-data-cache.sh"]
+        PushWrapper["push-data-cache-to-harbor.sh"]
+        DockerRoot["DockerRootDir under /data"]
+    end
+
+    subgraph cluster_2_K8sAirgap["k8s-airgap-images staged repo"]
+        StagedRepo["/data/k8s-airgap-images"]
+        CLI["image-airgap.sh"]
+        Lists["image-lists/"]
+        Logs["logs/"]
+    end
+
+    subgraph cluster_3_Registry["Harbor"]
+        Harbor["kubeharbor.dev.kube/library"]
+    end
+
+    StageScript --> StagedRepo
+    PullWrapper --> CLI
+    PushWrapper --> CLI
+    CLI --> Lists
+    CLI --> Logs
+    CLI --> DockerRoot
+    DockerRoot --> Harbor
+    CLI --> Harbor
+
+    style StagedRepo fill:#e3f2fd
+    style DockerRoot fill:#fff3e0
+    style Harbor fill:#e8f5e9
