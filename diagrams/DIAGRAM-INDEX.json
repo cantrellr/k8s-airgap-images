@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "title": "System Context",
+    "source": "diagrams/mermaid-source/k8s-airgap-images-diagram-01.mmd",
+    "svg": "diagrams/svg/k8s-airgap-images-diagram-01.svg",
+    "png": "diagrams/png/k8s-airgap-images-diagram-01.png"
+  },
+  {
+    "id": 2,
+    "title": "Repository Architecture",
+    "source": "diagrams/mermaid-source/k8s-airgap-images-diagram-02.mmd",
+    "svg": "diagrams/svg/k8s-airgap-images-diagram-02.svg",
+    "png": "diagrams/png/k8s-airgap-images-diagram-02.png"
+  },
+  {
+    "id": 3,
+    "title": "Image List Processing",
+    "source": "diagrams/mermaid-source/k8s-airgap-images-diagram-03.mmd",
+    "svg": "diagrams/svg/k8s-airgap-images-diagram-03.svg",
+    "png": "diagrams/png/k8s-airgap-images-diagram-03.png"
+  },
+  {
+    "id": 4,
+    "title": "Pull Workflow",
+    "source": "diagrams/mermaid-source/k8s-airgap-images-diagram-04.mmd",
+    "svg": "diagrams/svg/k8s-airgap-images-diagram-04.svg",
+    "png": "diagrams/png/k8s-airgap-images-diagram-04.png"
+  },
+  {
+    "id": 5,
+    "title": "Push Workflow",
+    "source": "diagrams/mermaid-source/k8s-airgap-images-diagram-05.mmd",
+    "svg": "diagrams/svg/k8s-airgap-images-diagram-05.svg",
+    "png": "diagrams/png/k8s-airgap-images-diagram-05.png"
+  },
+  {
+    "id": 6,
+    "title": "kubeharbor Integration",
+    "source": "diagrams/mermaid-source/k8s-airgap-images-diagram-06.mmd",
+    "svg": "diagrams/svg/k8s-airgap-images-diagram-06.svg",
+    "png": "diagrams/png/k8s-airgap-images-diagram-06.png"
+  }
+]
