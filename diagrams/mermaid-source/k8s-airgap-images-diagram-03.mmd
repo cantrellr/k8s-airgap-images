@@ -1,0 +1,26 @@
+flowchart TB
+    Raw["Raw source line"] --> Trim["Trim and remove comments"]
+    Trim --> Empty{"Empty?"}
+    Empty -- Yes --> Drop["Skip"]
+    Empty -- No --> Registry{"Registry specified?"}
+    Registry -- No --> AddDocker["Prefix docker.io/"]
+    Registry -- Yes --> Keep["Keep explicit registry"]
+    AddDocker --> Classify["Classify image"]
+    Keep --> Classify
+    Classify --> Bitnami{"Bitnami?"}
+    Bitnami -- Yes --> Archived["archived-images.list"]
+    Bitnami -- No --> DHI{"DHI?"}
+    DHI -- Yes --> DHIList["10-docker-hardened-images.list"]
+    DHI -- No --> IronBank{"registry1.dso.mil?"}
+    IronBank -- Yes --> IronBankList["20-registry1-dso-mil-images.list"]
+    IronBank -- No --> Nginx{"docker-registry.nginx.com?"}
+    Nginx -- Yes --> NginxList["30-nginx-registry-images.list"]
+    Nginx -- No --> PublicList["00-public-images.list"]
+    DHIList --> Active["all-active-images.list"]
+    IronBankList --> Active
+    NginxList --> Active
+    PublicList --> Active
+
+    style Archived fill:#ffebee
+    style Active fill:#e8f5e9
+    style Classify fill:#fff3e0
