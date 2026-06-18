@@ -1,0 +1,21 @@
+flowchart TB
+    Start["push-images.sh"] --> Organize["ensure generated lists exist"]
+    Organize --> Target["Resolve target prefix"]
+    Target --> Login["Login to target registry"]
+    Login --> ProjectCheck{"Ensure projects?"}
+    ProjectCheck -- Yes --> Reconcile["Harbor API project preflight"]
+    ProjectCheck -- No --> PushLoop["Push loop"]
+    Reconcile --> PushLoop
+    PushLoop --> LocalImage{"Source image local?"}
+    LocalImage -- No --> Missing["missing-local log"]
+    LocalImage -- Yes --> Retag["Retag source to target"]
+    Retag --> Push["Push target image"]
+    Push --> PushOK{"Push succeeded?"}
+    PushOK -- Yes --> Success["push-success.list"]
+    PushOK -- No --> Failed["push-failed timestamp list"]
+    Retag --> Map["push-image-map TSV"]
+
+    style Reconcile fill:#fff3e0
+    style Success fill:#e8f5e9
+    style Missing fill:#ffebee
+    style Failed fill:#ffebee
