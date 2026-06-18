@@ -1,0 +1,31 @@
+flowchart TB
+    subgraph cluster_1_Source["Governed Input"]
+        SourceLists["source-lists/*.list and *.txt"]
+    end
+
+    subgraph cluster_2_Core["Core Utility"]
+        MainCLI["image-airgap.sh"]
+        Organizer["tools/organize_image_lists.py"]
+        OrgWrapper["organize-image-lists.sh"]
+        PullWrapper["download-images.sh"]
+        PushWrapper["push-images.sh"]
+    end
+
+    subgraph cluster_3_Output["Generated Runtime State"]
+        ImageLists["image-lists/*.list"]
+        Manifest["manifest-counts.txt"]
+        Logs["logs/*.list and *.tsv"]
+    end
+
+    SourceLists --> Organizer
+    OrgWrapper --> MainCLI
+    PullWrapper --> MainCLI
+    PushWrapper --> MainCLI
+    MainCLI --> Organizer
+    Organizer --> ImageLists
+    Organizer --> Manifest
+    MainCLI --> Logs
+
+    style SourceLists fill:#e3f2fd
+    style MainCLI fill:#e8f5e9
+    style Logs fill:#fff3e0
