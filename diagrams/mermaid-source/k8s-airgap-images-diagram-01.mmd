@@ -1,0 +1,33 @@
+flowchart TB
+    subgraph cluster_1_Internet["Internet Connected Acquisition Side"]
+        UpstreamDocker["Docker Hub"]
+        UpstreamIronBank["registry1.dso.mil"]
+        UpstreamDHI["dhi.io"]
+        UpstreamOther["Other Registries"]
+        AirgapRepo["k8s-airgap-images"]
+    end
+
+    subgraph cluster_2_WorkHost["Acquisition Host or kubeharbor VM"]
+        GeneratedLists["Generated image-lists/"]
+        DockerCache["Local Docker or Podman Cache"]
+        Logs["logs/"]
+    end
+
+    subgraph cluster_3_AirGap["Air Gap Promotion Side"]
+        Harbor["Harbor Registry"]
+        K8sConsumers["Kubernetes Consumers"]
+    end
+
+    UpstreamDocker --> AirgapRepo
+    UpstreamIronBank --> AirgapRepo
+    UpstreamDHI --> AirgapRepo
+    UpstreamOther --> AirgapRepo
+    AirgapRepo --> GeneratedLists
+    GeneratedLists --> DockerCache
+    DockerCache --> Harbor
+    Logs --> Harbor
+    Harbor --> K8sConsumers
+
+    style AirgapRepo fill:#e3f2fd
+    style DockerCache fill:#fff3e0
+    style Harbor fill:#e8f5e9
