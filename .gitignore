@@ -1,2 +1,5 @@
 logs/*
 image-lists/manifest-counts.txt
+.diagram-tools/
+.diagram-sync-updated-files.txt
+diagrams/node_modules/
