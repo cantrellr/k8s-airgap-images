@@ -1,0 +1,34 @@
+# Helm chart packages used by cantrellr/k8s-mystical-mesh install scripts.
+#
+# Format:
+#   repo_alias|repo_url|chart|version
+#
+# Inventory method:
+#   - CHART="*.tgz" and PACKAGE/HELM_PACKAGES_DIR references in build/install scripts.
+#   - helm/charts/*/Chart.yaml where the repo keeps packages untar'd.
+#   - Install-script package versions win when they differ from an unpacked chart directory.
+#
+# Notes:
+#   - oci:// rows are supported by helm-airgap.sh.
+#   - Bitnami/Broadcom charts are listed as OCI charts because current untar'd Chart.yaml
+#     dependencies reference registry-1.docker.io/bitnamicharts.
+#   - mongo-express-6.5.2.tgz is referenced by k8s-mystical-mesh, but no matching
+#     untar'd Chart.yaml or reliable upstream Helm repo was found in the repo inventory.
+#     Keep that package staged manually until the source repository is confirmed.
+
+bitnamicharts|oci://registry-1.docker.io/bitnamicharts|cert-manager|1.5.14
+metallb|https://metallb.github.io/metallb|metallb|0.15.2
+netapp-trident|https://netapp.github.io/trident-helm-chart|trident-operator|100.2602.1
+netapp-trident-protect|https://netapp.github.io/trident-protect-helm-chart|trident-protect|100.2602.0
+bitnamicharts|oci://registry-1.docker.io/bitnamicharts|contour|21.1.4
+prometheus-community|https://prometheus-community.github.io/helm-charts|kube-prometheus-stack|82.1.0
+argoproj|https://argoproj.github.io/argo-helm|argo-cd|9.5.15
+nats|https://nats-io.github.io/k8s/helm/charts|nats|2.12.2
+rancher-latest|https://releases.rancher.com/server-charts/latest|rancher|2.14.2
+rocketchat|https://rocketchat.github.io/helm-charts|rocketchat|6.27.1
+mongodb|https://mongodb.github.io/helm-charts|mongodb-kubernetes|1.5.0
+portainer|https://portainer.github.io/k8s/|portainer|2.33.6
+longhorn|https://charts.longhorn.io|longhorn|1.12.0
+
+# Manual/staged until upstream chart source is confirmed:
+# manual|unknown|mongo-express|6.5.2
