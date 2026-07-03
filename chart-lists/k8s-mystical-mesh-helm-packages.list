@@ -1,0 +1,37 @@
+# Helm chart packages used by k8s-mystical-mesh install scripts.
+#
+# Format:
+#   repo_alias|repo_url|chart|version
+#
+# Inventory method:
+#   - CHART="*.tgz" and PACKAGE/HELM_PACKAGES_DIR references in build/install scripts.
+#   - helm/charts/*/Chart.yaml where the repo keeps packages untar'd.
+#   - Install-script package versions win when they differ from an unpacked chart directory.
+
+argoproj|https://argoproj.github.io/argo-helm|argo-cd|9.5.15
+argoproj|https://argoproj.github.io/argo-helm|argo-cd|10.1.1
+bitnamicharts|oci://registry-1.docker.io/bitnamicharts|cert-manager|1.5.14
+bitnamicharts|oci://registry-1.docker.io/bitnamicharts|cert-manager|1.5.15
+bitnamicharts|oci://registry-1.docker.io/bitnamicharts|contour|21.1.4
+bitnamicharts|oci://registry-1.docker.io/bitnamicharts|contour|21.1.5
+cnpg|https://cloudnative-pg.github.io/charts|cloudnative-pg|0.29.0
+cnpg|https://cloudnative-pg.github.io/charts|cluster|0.7.0
+cnpg|https://cloudnative-pg.github.io/charts|plugin-barman-cloud|0.7.0
+longhorn|https://charts.longhorn.io|longhorn|1.12.0
+metallb|https://metallb.github.io/metallb|metallb|0.15.2
+metallb|https://metallb.github.io/metallb|metallb|0.16.1
+mongodb|https://mongodb.github.io/helm-charts|mongodb-kubernetes|1.5.0
+mongodb|https://mongodb.github.io/helm-charts|mongodb-kubernetes|1.9.1
+nats|https://nats-io.github.io/k8s/helm/charts|nats|2.12.2
+nats|https://nats-io.github.io/k8s/helm/charts|nats|2.14.2
+netapp-trident|https://netapp.github.io/trident-helm-chart|trident-operator|100.2602.1
+netapp-trident-protect|https://netapp.github.io/trident-protect-helm-chart|trident-protect|100.2602.0
+netapp-trident-protect|https://netapp.github.io/trident-protect-helm-chart|trident-protect|100.2606.0
+portainer|https://portainer.github.io/k8s/|portainer|2.33.6
+portainer|https://portainer.github.io/k8s/|portainer|239.4.0
+prometheus-community|https://prometheus-community.github.io/helm-charts|kube-prometheus-stack|82.1.0
+prometheus-community|https://prometheus-community.github.io/helm-charts|kube-prometheus-stack|87.5.1
+rancher-latest|https://releases.rancher.com/server-charts/latest|rancher|2.14.1
+rancher-latest|https://releases.rancher.com/server-charts/latest|rancher|2.14.2
+rocketchat|https://rocketchat.github.io/helm-charts|rocketchat|6.27.1
+rocketchat|https://rocketchat.github.io/helm-charts|rocketchat|7.0.0

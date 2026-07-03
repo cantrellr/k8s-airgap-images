@@ -23,8 +23,9 @@ Wrappers:
 Chart list format:
   repo_alias|repo_url|chart|version
 
-Example:
+Examples:
   cnpg|https://cloudnative-pg.github.io/charts|cloudnative-pg|0.29.0
+  bitnamicharts|oci://registry-1.docker.io/bitnamicharts|cert-manager|1.5.14
 
 Environment:
   CHART_LIST_DIR=./chart-lists
@@ -116,6 +117,7 @@ parse_bundle_args() {
 helm_pull_one() {
   local alias="$1" repo_url="$2" chart="$3" version="$4" success_log="$5" failed_log="$6"
   local package="$HELM_PACKAGE_DIR/${chart}-${version}.tgz"
+  local chart_ref="${alias}/${chart}"
 
   if [[ "$FORCE_PULL" != "true" && -f "$package" ]]; then
     log "SKIP existing chart package: $package"
@@ -123,15 +125,27 @@ helm_pull_one() {
     return 0
   fi
 
+  if [[ "$repo_url" == oci://* ]]; then
+    chart_ref="${repo_url%/}/${chart}"
+  fi
+
   log "Chart source: $alias -> $repo_url"
   if [[ "$DRY_RUN" == "true" ]]; then
-    log "DRY RUN: would run 'helm repo add $alias $repo_url --force-update'"
-    log "DRY RUN: would run 'helm pull $alias/$chart --version $version --destination $HELM_PACKAGE_DIR'"
+    if [[ "$repo_url" == oci://* ]]; then
+      log "DRY RUN: would run 'helm pull $chart_ref --version $version --destination $HELM_PACKAGE_DIR'"
+    else
+      log "DRY RUN: would run 'helm repo add $alias $repo_url --force-update'"
+      log "DRY RUN: would run 'helm pull $chart_ref --version $version --destination $HELM_PACKAGE_DIR'"
+    fi
     return 0
   fi
 
-  helm repo add "$alias" "$repo_url" --force-update >/dev/null
-  helm pull "$alias/$chart" --version "$version" --destination "$HELM_PACKAGE_DIR"
+  if [[ "$repo_url" == oci://* ]]; then
+    helm pull "$chart_ref" --version "$version" --destination "$HELM_PACKAGE_DIR"
+  else
+    helm repo add "$alias" "$repo_url" --force-update >/dev/null
+    helm pull "$chart_ref" --version "$version" --destination "$HELM_PACKAGE_DIR"
+  fi
 
   if [[ -f "$package" ]]; then
     append_unique "$success_log" "$package"
