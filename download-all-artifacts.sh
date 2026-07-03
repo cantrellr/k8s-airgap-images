@@ -14,10 +14,12 @@ Usage:
 
 Environment overrides:
   IMAGE_LIST=image-lists/all-active-images.list
-  CHART_LIST=chart-lists/cloudnativepg-postgres-ha-charts.list
+  CHART_LIST=chart-lists/<specific-chart-list>.list
   HELM_PACKAGE_DIR=helm-packages
 
 This wrapper downloads both container images and Helm chart packages while connected.
+If CHART_LIST is not set, all chart-lists/*.list files are combined by helm-airgap.sh.
+
 Use the lower-level wrappers for custom options:
   ./download-images.sh --help
   ./download-helm-charts.sh --help
@@ -44,5 +46,9 @@ if [[ "$SKIP_IMAGES" != "true" ]]; then
 fi
 
 if [[ "$SKIP_CHARTS" != "true" ]]; then
-  "$SCRIPT_DIR/download-helm-charts.sh" --list "${CHART_LIST:-$SCRIPT_DIR/chart-lists/cloudnativepg-postgres-ha-charts.list}" "${CHART_ARGS[@]}"
+  if [[ -n "${CHART_LIST:-}" ]]; then
+    "$SCRIPT_DIR/download-helm-charts.sh" --list "$CHART_LIST" "${CHART_ARGS[@]}"
+  else
+    "$SCRIPT_DIR/download-helm-charts.sh" "${CHART_ARGS[@]}"
+  fi
 fi
