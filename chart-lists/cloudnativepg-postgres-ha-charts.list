@@ -1,0 +1,10 @@
+# Helm charts for the recommended CloudNativePG PostgreSQL HA stack.
+# Format:
+#   repo_alias|repo_url|chart|version
+#
+# Pull with:
+#   ./download-helm-charts.sh --list chart-lists/cloudnativepg-postgres-ha-charts.list
+
+cnpg|https://cloudnative-pg.github.io/charts|cloudnative-pg|0.29.0
+cnpg|https://cloudnative-pg.github.io/charts|cluster|0.7.0
+cnpg|https://cloudnative-pg.github.io/charts|plugin-barman-cloud|0.7.0
