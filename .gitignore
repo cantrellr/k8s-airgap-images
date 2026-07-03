@@ -1,5 +1,8 @@
 logs/*
-image-lists/manifest-counts.txt
+image-lists/*
 .diagram-tools/
 .diagram-sync-updated-files.txt
 diagrams/node_modules/
+helm-packages/*
+!helm-packages/README.md
+bundles/*
