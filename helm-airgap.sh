@@ -14,11 +14,11 @@ usage() {
   cat <<'EOF'
 Usage:
   ./helm-airgap.sh pull [--list chart-lists/<charts>.list] [--destination helm-packages] [--force] [--dry-run]
-  ./helm-airgap.sh bundle [--output bundles/helm-charts-YYYYmmdd-HHMMSS.tar.gz]
+  ./helm-airgap.sh bundle [--output bundles/helm-charts-YYYYmmdd-HHMMSS.tar.gz] [--dry-run]
 
 Wrappers:
   ./download-helm-charts.sh [pull options]
-  ./create-helm-chart-bundle.sh [bundle options]
+  ./create-chart-package.sh [bundle options]
 
 Chart list format:
   repo_alias|repo_url|chart|version
@@ -103,6 +103,8 @@ parse_bundle_args() {
     case "$1" in
       --output|-o)
         BUNDLE_OUTPUT="${2:-}"; shift 2 ;;
+      --dry-run)
+        DRY_RUN="true"; shift ;;
       -h|--help)
         usage; exit 0 ;;
       *)
