@@ -1,0 +1,13 @@
+# CloudNativePG PostgreSQL HA baseline images
+# Source of truth for the recommended non-Bitnami PostgreSQL HA path.
+#
+# Operator chart cloudnative-pg-v0.29.0 defaults appVersion to 1.30.0.
+# PostgreSQL and PgBouncer images align with the CloudNativePG image catalog examples.
+# Barman Cloud plugin images are optional but included for backup/restore readiness.
+
+ghcr.io/cloudnative-pg/cloudnative-pg:1.30.0
+ghcr.io/cloudnative-pg/postgresql:18.4-system-trixie
+ghcr.io/cloudnative-pg/postgresql:17.6-system-trixie
+ghcr.io/cloudnative-pg/pgbouncer:1.25.1
+ghcr.io/cloudnative-pg/plugin-barman-cloud:v0.13.0
+ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar:v0.13.0
