@@ -1,13 +1,24 @@
 # CloudNativePG PostgreSQL HA baseline images
-# Source of truth for the recommended non-Bitnami PostgreSQL HA path.
+# Source of truth for the recommended non-Bitnami PostgreSQL HA path used by k8s-mystical-mesh oppostgres.
 #
-# Operator chart cloudnative-pg-v0.29.0 defaults appVersion to 1.30.0.
-# PostgreSQL and PgBouncer images align with the CloudNativePG image catalog examples.
-# Barman Cloud plugin images are optional but included for backup/restore readiness.
+# Helm chart alignment:
+#   cloudnative-pg chart 0.29.0 -> appVersion 1.30.0
+#   plugin-barman-cloud chart 0.7.0 -> appVersion v0.13.0
+#
+# Runtime notes:
+#   - The CloudNativePG operator image is required for the cnpg-system operator deployment.
+#   - PostgreSQL 17.6 is the primary target for the Keycloak oppostgres HA cluster.
+#   - PostgreSQL 18.4 is retained as a forward-compatible CNPG catalog image, but Keycloak should use 17.x unless intentionally upgraded.
+#   - PgBouncer is included for optional CNPG Pooler resources.
+#   - Barman Cloud plugin images are included for backup/restore readiness.
+#   - postgres:17 is used by the local verification/test-client pod in the k8s-mystical-mesh bundle.
+#   - busybox is included as a small utility image for air-gapped troubleshooting jobs.
 
 ghcr.io/cloudnative-pg/cloudnative-pg:1.30.0
-ghcr.io/cloudnative-pg/postgresql:18.4-system-trixie
 ghcr.io/cloudnative-pg/postgresql:17.6-system-trixie
+ghcr.io/cloudnative-pg/postgresql:18.4-system-trixie
 ghcr.io/cloudnative-pg/pgbouncer:1.25.1
 ghcr.io/cloudnative-pg/plugin-barman-cloud:v0.13.0
 ghcr.io/cloudnative-pg/plugin-barman-cloud-sidecar:v0.13.0
+docker.io/postgres:17.6
+docker.io/busybox:1.37.0
