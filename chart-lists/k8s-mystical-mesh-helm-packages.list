@@ -11,13 +11,11 @@
 argoproj|https://argoproj.github.io/argo-helm|argo-cd|9.5.15
 argoproj|https://argoproj.github.io/argo-helm|argo-cd|10.1.1
 bitnamicharts|oci://registry-1.docker.io/bitnamicharts|cert-manager|1.5.14
-bitnamicharts|oci://registry-1.docker.io/bitnamicharts|cert-manager|1.5.15
 bitnamicharts|oci://registry-1.docker.io/bitnamicharts|contour|21.1.4
-bitnamicharts|oci://registry-1.docker.io/bitnamicharts|contour|21.1.5
 cnpg|https://cloudnative-pg.github.io/charts|cloudnative-pg|0.29.0
 cnpg|https://cloudnative-pg.github.io/charts|cluster|0.7.0
 cnpg|https://cloudnative-pg.github.io/charts|plugin-barman-cloud|0.7.0
-elastic|https://helm.elastic.co|elastic-agent|9.0.0
+elastic|https://helm.elastic.co|elastic-agent|9.4.2
 longhorn|https://charts.longhorn.io|longhorn|1.12.0
 metallb|https://metallb.github.io/metallb|metallb|0.15.2
 metallb|https://metallb.github.io/metallb|metallb|0.16.1
