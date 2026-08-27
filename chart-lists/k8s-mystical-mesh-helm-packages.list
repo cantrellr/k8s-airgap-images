@@ -44,4 +44,4 @@ rancher-latest|https://releases.rancher.com/server-charts/latest|rancher|2.15.0
 rocketchat|https://rocketchat.github.io/helm-charts|rocketchat|6.27.1
 rocketchat|https://rocketchat.github.io/helm-charts|rocketchat|7.0.0
 prometheus-community|https://prometheus-community.github.io/helm-charts|kube-state-metrics|6.1.0
-gitlab|https://charts.gitlab.io|gitlab-runner|19.3.1
+gitlab|https://charts.gitlab.io|gitlab-runner|0.92.1
