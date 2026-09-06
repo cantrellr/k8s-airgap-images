@@ -191,7 +191,6 @@ docker.io/nginx:1.27.3
 docker.io/nginxinc/nginx-unprivileged:1.29-alpine
 docker.io/otel/opentelemetry-collector-contrib:0.143.0
 docker.io/percona/mongodb_exporter:0.44.0
-docker.io/pihole/pihole:2024.07.0
 docker.io/portainer/portainer-ce:2.33.6
 docker.io/portainer/portainer-ce:2.33.7
 docker.io/portainer/portainer-ee:2.33.6
