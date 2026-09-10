@@ -1,0 +1,60 @@
+# k8mm-seg1opdev-multicluster v2.7 direct upstream image contract.
+# Reconciled 2026-09-10 from the deployment package.
+#
+# Bitnami images are intentionally kept in active-bitnami-seg1opdev-v2.7.list
+# so they remain active exceptions to the repository-wide Bitnami archive policy.
+# Rancher transitive/system images remain covered by rancher-images-v2-15.txt.
+# Private images that have no Internet-download source are tracked under
+# contracts/seg1opdev-v2.7-local-images.list.
+
+# MetalLB / FRR
+quay.io/metallb/controller:v0.15.2
+quay.io/metallb/speaker:v0.15.2
+quay.io/frrouting/frr:10.4.1
+
+# Longhorn 1.12.1
+docker.io/longhornio/backing-image-manager:v1.12.1
+docker.io/longhornio/longhorn-engine:v1.12.1
+docker.io/longhornio/longhorn-instance-manager:v1.12.1
+docker.io/longhornio/longhorn-manager:v1.12.1
+docker.io/longhornio/longhorn-share-manager:v1.12.1
+docker.io/longhornio/longhorn-ui:v1.12.1
+docker.io/longhornio/longhorn-cli:v1.12.1
+docker.io/longhornio/csi-attacher:v4.12.0
+docker.io/longhornio/csi-provisioner:v5.3.0
+docker.io/longhornio/csi-resizer:v2.2.1
+docker.io/longhornio/csi-snapshotter:v8.6.0
+docker.io/longhornio/csi-node-driver-registrar:v2.17.0
+docker.io/longhornio/livenessprobe:v2.19.0
+docker.io/longhornio/support-bundle-kit:v0.0.92
+
+# CloudNativePG / PostgreSQL
+ghcr.io/cloudnative-pg/cloudnative-pg:1.30.0
+ghcr.io/cloudnative-pg/postgresql:17.6-system-trixie
+ghcr.io/cloudnative-pg/pgbouncer:1.25.1
+
+# Keycloak
+quay.io/keycloak/keycloak-operator:26.5.5
+docker.io/cantrellcloud/dhi-keycloak:26.6.3-debian13
+
+# Istio / Kiali
+registry.istio.io/release/install-cni:1.30.1
+registry.istio.io/release/pilot:1.30.1
+registry.istio.io/release/proxyv2:1.30.1
+quay.io/kiali/kiali-operator:v2.27.0
+quay.io/kiali/kiali:v2.27.0
+
+# Monitoring
+docker.elastic.co/elastic-agent/elastic-agent:9.4.2
+registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.16.0
+
+# GitLab Runner / validation
+registry1.dso.mil/ironbank/gitlab/gitlab-runner/gitlab-runner:v19.3.1
+registry1.dso.mil/ironbank/gitlab/gitlab-runner/gitlab-runner-helper:v19.3.1
+registry1.dso.mil/ironbank/opensource/ansible/ansible:14.3.1
+
+# Rancher direct/bootstrap images. The full v2.15 system inventory is maintained
+# separately in source-lists/rancher-images-v2-15.txt.
+docker.io/rancher/rancher:v2.15.0
+docker.io/rancher/mirrored-bci-micro:15.6.24.2
+docker.io/rancher/shell:v0.7.0
