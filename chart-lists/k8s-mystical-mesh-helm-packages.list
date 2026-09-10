@@ -8,7 +8,7 @@
 #   - helm/charts/*/Chart.yaml where the repo keeps packages untar'd.
 #   - Install-script package versions win when they differ from an unpacked chart directory.
 #
-# agent/seg1opdev-identity-ha was reconciled against this list on 2026-07-30.
+# k8mm-seg1opdev-multicluster v2.7 was reconciled against this list on 2026-09-10.
 
 argoproj|https://argoproj.github.io/argo-helm|argo-cd|9.5.15
 argoproj|https://argoproj.github.io/argo-helm|argo-cd|10.1.1
@@ -24,7 +24,7 @@ istio|https://istio-release.storage.googleapis.com/charts|gateway|1.30.1
 istio|https://istio-release.storage.googleapis.com/charts|istiod|1.30.1
 kiali|https://kiali.org/helm-charts|kiali-operator|2.27.0
 kiali|https://kiali.org/helm-charts|kiali-server|2.27.0
-longhorn|https://charts.longhorn.io|longhorn|1.12.0
+longhorn|https://charts.longhorn.io|longhorn|1.12.1
 metallb|https://metallb.github.io/metallb|metallb|0.15.2
 metallb|https://metallb.github.io/metallb|metallb|0.16.1
 mongodb|https://mongodb.github.io/helm-charts|mongodb-kubernetes|1.5.0
