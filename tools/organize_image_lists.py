@@ -41,12 +41,17 @@ def is_ironbank(image: str) -> bool:
 def is_nginx_private(image: str) -> bool:
     return image.startswith("docker-registry.nginx.com/")
 
+def is_active_bitnami_source(path: Path) -> bool:
+    """Files named active-bitnami-*.list explicitly opt selected Bitnami images in."""
+    return path.name.startswith("active-bitnami-") and path.suffix == ".list"
+
 all_source: set[str] = set()
 public: set[str] = set()
 dhi: set[str] = set()
 ironbank: set[str] = set()
 nginx: set[str] = set()
 archived: set[str] = set()
+active_bitnami: set[str] = set()
 
 for path in files:
     for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -58,7 +63,11 @@ for path in files:
             continue
         all_source.add(image)
         if is_bitnami(image):
-            archived.add(image)
+            if is_active_bitnami_source(path):
+                active_bitnami.add(image)
+                public.add(image)
+            else:
+                archived.add(image)
         elif is_dhi(image):
             dhi.add(image)
         elif is_ironbank(image):
@@ -68,12 +77,15 @@ for path in files:
         else:
             public.add(image)
 
+# An explicit active-bitnami source always wins over a legacy/archive source.
+archived -= active_bitnami
 active = public | dhi | ironbank | nginx
 outputs = {
     "00-public-images.list": public,
     "10-docker-hardened-images.list": dhi,
     "20-registry1-dso-mil-images.list": ironbank,
     "30-nginx-registry-images.list": nginx,
+    "active-bitnami-images.list": active_bitnami,
     "archived-images.list": archived,
     "all-active-images.list": active,
     "all-source-images.list": all_source,
@@ -91,6 +103,7 @@ counts = {
     "Docker Hardened Images/DHI list": len(dhi),
     "registry1.dso.mil/Iron Bank list": len(ironbank),
     "docker-registry.nginx.com list": len(nginx),
+    "Active Bitnami exceptions": len(active_bitnami),
     "Archived Bitnami list": len(archived),
 }
 text = "\n".join(f"{k}: {v}" for k, v in counts.items()) + "\n"

@@ -1,0 +1,8 @@
+# k8mm-seg1opdev-multicluster v2.7 images that are private/local build artifacts.
+# These are deployment requirements but do not have an authoritative public
+# Internet source in this repository. They must already exist in the staging
+# registry/cache or be exported from the build environment and imported into
+# the air-gap registry before deployment.
+
+kubeharbor.dev.kube/library/chrony-air-gapped:v0.1.4
+kubeharbor.dev.kube/library/ultimate-k8s-toolbox:v1.0.1

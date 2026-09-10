@@ -1,0 +1,62 @@
+name: Validate Segment1 OPDEV inventory
+
+on:
+  pull_request:
+    paths:
+      - 'source-lists/**'
+      - 'chart-lists/**'
+      - 'contracts/**'
+      - 'tools/organize_image_lists.py'
+      - 'tools/validate_seg1opdev_inventory.py'
+      - '.github/workflows/validate-seg1opdev-inventory.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'source-lists/**'
+      - 'chart-lists/**'
+      - 'contracts/**'
+      - 'tools/organize_image_lists.py'
+      - 'tools/validate_seg1opdev_inventory.py'
+      - '.github/workflows/validate-seg1opdev-inventory.yml'
+  workflow_dispatch:
+    inputs:
+      deployment_ref:
+        description: 'k8mm-seg1opdev-multicluster branch/tag for optional cross-repo validation'
+        required: false
+        default: 'multicluster-longhorn'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOYMENT_REF: ${{ github.event.inputs.deployment_ref || 'multicluster-longhorn' }}
+      SEG1OPDEV_REPO_TOKEN: ${{ secrets.SEG1OPDEV_REPO_TOKEN }}
+    steps:
+      - name: Checkout air-gap inventory
+        uses: actions/checkout@v4
+
+      - name: Validate internal Segment1 OPDEV contract
+        run: python3 tools/validate_seg1opdev_inventory.py
+
+      - name: Optional cross-repository validation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          if [[ -z "${SEG1OPDEV_REPO_TOKEN:-}" ]]; then
+            echo "::notice::SEG1OPDEV_REPO_TOKEN is not configured; skipping private cross-repository checkout."
+            echo "::notice::Static v2.7 inventory validation still ran and is required."
+            exit 0
+          fi
+
+          auth="$(printf 'x-access-token:%s' "${SEG1OPDEV_REPO_TOKEN}" | base64 -w0)"
+          git -c http.extraheader="AUTHORIZATION: basic ${auth}" \
+            clone --depth 1 --branch "${DEPLOYMENT_REF}" \
+            https://github.com/cantrellr/k8mm-seg1opdev-multicluster.git \
+            "${RUNNER_TEMP}/k8mm-seg1opdev-multicluster"
+
+          python3 tools/validate_seg1opdev_inventory.py \
+            --deployment-repo "${RUNNER_TEMP}/k8mm-seg1opdev-multicluster"

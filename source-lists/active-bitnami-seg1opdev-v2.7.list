@@ -1,0 +1,11 @@
+# Active Bitnami exceptions required by k8mm-seg1opdev-multicluster v2.7.
+# These are intentionally not archived because the deployed cert-manager and
+# Contour charts resolve to these exact image versions.
+
+docker.io/bitnami/acmesolver:1.18.2-debian-12-r5
+docker.io/bitnami/cainjector:1.18.2-debian-12-r5
+docker.io/bitnami/cert-manager-webhook:1.18.2-debian-12-r5
+docker.io/bitnami/cert-manager:1.18.2-debian-12-r5
+docker.io/bitnami/contour:1.32.1-debian-12-r0
+docker.io/bitnami/envoy:1.34.5-debian-12-r0
+docker.io/bitnami/nginx:1.29.1-debian-12-r0

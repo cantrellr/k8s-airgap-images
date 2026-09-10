@@ -1,0 +1,17 @@
+# Helm package contract for k8mm-seg1opdev-multicluster v2.7.
+base-1.30.1.tgz
+cert-manager-1.5.14.tgz
+cloudnative-pg-0.29.0.tgz
+cluster-0.7.0.tgz
+cni-1.30.1.tgz
+contour-21.1.4.tgz
+elastic-agent-9.4.2.tgz
+gateway-1.30.1.tgz
+gitlab-runner-0.92.1.tgz
+istiod-1.30.1.tgz
+kiali-operator-2.27.0.tgz
+kiali-server-2.27.0.tgz
+kube-state-metrics-6.1.0.tgz
+longhorn-1.12.1.tgz
+metallb-0.15.2.tgz
+rancher-2.15.0.tgz
